@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "noEmitOnError": true,
+        "strict": true,
+        "removeComments": true,
+        "experimentalDecorators": true,
+        "target": "ES2015",
+    },
+    "include": [
+        "./src/*.ts",
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
