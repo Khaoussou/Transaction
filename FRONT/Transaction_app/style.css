@@ -59,3 +59,13 @@ hr {
     background-color: #b32700;
     border-color: #0056b3;
 }
+
+.icone {
+    cursor: pointer;
+}
+
+.table-conte {
+    position: absolute;
+    top: -3.2%;
+    right: 0;
+}

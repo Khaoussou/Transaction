@@ -10,6 +10,16 @@ let four = document.querySelector("#fournisseur") as HTMLInputElement
 let transactionTitle = document.querySelector(".trans") as HTMLElement
 let desTitle = document.querySelector(".des") as HTMLElement
 let container = document.querySelector(".container") as HTMLElement
+let formControl = document.querySelectorAll(".form-control") as NodeListOf<Element>
+let destinataire = document.querySelector(".detinataire") as HTMLInputElement
+let icone = document.querySelector(".icone") as HTMLElement
+let tbody = document.querySelector("#tbody") as HTMLElement
+let tableConte = document.querySelector(".table-conte") as HTMLElement
+tableConte.style.display = "none"
+
+
+
+
 
 
 
@@ -44,12 +54,47 @@ async function getData(url: string) {
     return d;
 }
 
+function emptyField(inputs: any) {
+    inputs.forEach(input => {
+        input.value = ''
+    })
+}
+
+function chargerData(tabs: any) {
+    tbody.innerHTML = ""
+    tabs.forEach(tab => {
+        let tr = creatingElement('tr', { class: '' }, "")
+        let date = creatingElement('td', { class: '' }, tab.date)
+        let type = creatingElement('td', { class: '' }, tab.type)
+        let montant = creatingElement('td', { class: '' }, tab.montant)
+        tr.append(date, type, montant)
+        tbody.append(tr)
+    });
+}
+
+icone.addEventListener("click", () => {
+    let expediteur: string = exp?.value
+    let data = getData(Url + "transact/" + expediteur)
+    data.then(res => {
+        tableConte.style.display = "block"
+        chargerData(res)
+    })
+})
+
+icone.style.display = "none";
 
 expediteur_nom.addEventListener("focus", () => {
     let expediteur: string = exp?.value
+    if (expediteur_nom.value !== " ") {
+        icone.style.display = "block"
+    } else {
+        icone.style.display = "none"
+    }
     let data = getData(Url + "name/" + expediteur)
     data.then(res => {
         expediteur_nom.value = res
+    }).catch(error => {
+        afficheMessage("Client", expediteur_nom)
     })
 })
 
@@ -71,6 +116,14 @@ four.addEventListener("change", () => {
     if (four.value == "cb") {
         transactionTitle.style.backgroundColor = transact.cb
         desTitle.style.backgroundColor = transact.cb
+    }
+})
+
+types.addEventListener("change", () => {
+    if (types.value == "retrait") {
+        destinataire.style.display = "none"
+    } else {
+        destinataire.style.display = "block"
     }
 })
 
@@ -104,7 +157,10 @@ save.addEventListener("click", () => {
             "Accept": "application/json"
         },
         body: JSON.stringify(newTab)
-    }).then(res => res.json()
-        .then(data => console.log(data.json())
-        ))
+    }).then(res => res.json().then(data => {
+        afficheMessage(data, container)
+    }
+    ))
+    tableConte.style.display = "none"
+    // emptyField(formControl)
 })

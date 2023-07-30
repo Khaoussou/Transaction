@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TransactionRequest;
 use App\Models\Client;
 use App\Models\Compte;
 use App\Models\Transaction;
@@ -15,7 +16,7 @@ class TransactionController extends Controller
      * Display a listing of the resource.
      */
 
-    public function depot(Request $request)
+    public function depot(TransactionRequest $request)
     {
         $transact = new Transaction();
         $destinataire = $request->destinataire;
@@ -27,22 +28,22 @@ class TransactionController extends Controller
         $destId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->client_id;
         $expId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur)->client_id;
         if ($montant < 500) {
-            return "Transaction impossible";
+            return response()->json("Veuillez donner un montant supérieur ou egale à 500 !");
         } elseif ($fournisseur == "wr" && $montant < 1000) {
-            return "Transaction impossible !";
+            return response()->json("Veuillez donner un montant supérieur ou egale à 1000 !");
         } elseif ($fournisseur == "cb" && $montant < 10000) {
-            return "Depot impossible !";
+            return response()->json("Veuillez donner un montant supérieur ou egale à 10000 !");
         } elseif ($fournisseur !== "cb" && $montant > 1000000) {
-            return "Impossible de faire cette transaction !";
+            return response()->json("Impossible de faire cette transaction votre fournisseur ne l'accepte pas !");
         } elseif ($destId !== $expId) {
-            return "Les données ne correspondent pas !";
+            return response()->json("Les données ne correspondent pas !");
         } else {
             $newTransaction = [
                 "expediteur_id" => $expId,
                 "destinataire_id" => $destId,
                 "date" => Carbon::now(),
                 "montant" => $montant,
-                "type" => $type,
+                "type" => $type
             ];
             DB::beginTransaction();
             Transaction::create($newTransaction);
@@ -76,6 +77,21 @@ class TransactionController extends Controller
         }
     }
 
+    public function transact($numero)
+    {
+        $transact = new Transaction();
+        $idClient = $transact->getNameByPhone($numero)->id;
+        $transactions = $transact->getTransactById($idClient);
+        $valeur = [];
+        for ($i = 0; $i < count($transactions); $i++) {
+            $valeur[] = [
+                "montant" => $transactions[$i]->montant,
+                "type" => $transactions[$i]->type,
+                "date" => $transactions[$i]->date,
+            ];
+        }
+        return response()->json($valeur);
+    }
     public function index()
     {
         return Transaction::all();

@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -20,6 +19,12 @@ let four = document.querySelector("#fournisseur");
 let transactionTitle = document.querySelector(".trans");
 let desTitle = document.querySelector(".des");
 let container = document.querySelector(".container");
+let formControl = document.querySelectorAll(".form-control");
+let destinataire = document.querySelector(".detinataire");
+let icone = document.querySelector(".icone");
+let tbody = document.querySelector("#tbody");
+let tableConte = document.querySelector(".table-conte");
+tableConte.style.display = "none";
 var transact;
 (function (transact) {
     transact["om"] = "#ff4500";
@@ -49,11 +54,44 @@ function getData(url) {
         return d;
     });
 }
+function emptyField(inputs) {
+    inputs.forEach(input => {
+        input.value = '';
+    });
+}
+function chargerData(tabs) {
+    tbody.innerHTML = "";
+    tabs.forEach(tab => {
+        let tr = creatingElement('tr', { class: '' }, "");
+        let date = creatingElement('td', { class: '' }, tab.date);
+        let type = creatingElement('td', { class: '' }, tab.type);
+        let montant = creatingElement('td', { class: '' }, tab.montant);
+        tr.append(date, type, montant);
+        tbody.append(tr);
+    });
+}
+icone.addEventListener("click", () => {
+    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
+    let data = getData(Url + "transact/" + expediteur);
+    data.then(res => {
+        tableConte.style.display = "block";
+        chargerData(res);
+    });
+});
+icone.style.display = "none";
 expediteur_nom.addEventListener("focus", () => {
     let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
+    if (expediteur_nom.value !== " ") {
+        icone.style.display = "block";
+    }
+    else {
+        icone.style.display = "none";
+    }
     let data = getData(Url + "name/" + expediteur);
     data.then(res => {
         expediteur_nom.value = res;
+    }).catch(error => {
+        afficheMessage("Client", expediteur_nom);
     });
 });
 four.addEventListener("change", () => {
@@ -74,6 +112,14 @@ four.addEventListener("change", () => {
     if (four.value == "cb") {
         transactionTitle.style.backgroundColor = transact.cb;
         desTitle.style.backgroundColor = transact.cb;
+    }
+});
+types.addEventListener("change", () => {
+    if (types.value == "retrait") {
+        destinataire.style.display = "none";
+    }
+    else {
+        destinataire.style.display = "block";
     }
 });
 destinataire_nom.addEventListener("focus", () => {
@@ -103,6 +149,8 @@ save.addEventListener("click", () => {
             "Accept": "application/json"
         },
         body: JSON.stringify(newTab)
-    }).then(res => res.json()
-        .then(data => console.log(data.json())));
+    }).then(res => res.json().then(data => {
+        afficheMessage(data, container);
+    }));
+    tableConte.style.display = "none";
 });

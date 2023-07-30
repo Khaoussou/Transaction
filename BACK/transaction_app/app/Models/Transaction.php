@@ -23,4 +23,9 @@ class Transaction extends Model
         return Compte::where("numero_compte", $numero)
             ->first();
     }
+    public function getTransactById($id)
+    {
+        return Transaction::where("expediteur_id", $id)
+            ->get();
+    }
 }

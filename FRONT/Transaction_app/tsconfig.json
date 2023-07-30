@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "dist",
         "noEmitOnError": true,
-        "strict": true,
+        // "strict": true,
         "removeComments": true,
         "experimentalDecorators": true,
         "target": "ES2015",
