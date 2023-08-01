@@ -30,8 +30,6 @@ class TransactionController extends Controller
         $destWrId = $transact->getDataByPhone($destinataire)->id ?? null;
         $type = $request->type;
         $destId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->client_id ?? null;
-        $numbAccountClient = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur)->numero_compte ?? null;
-        $numbAccountDest = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->numero_compte ?? null;
         $newTransaction = [
             "expediteur_id" => $clientId,
             "destinataire_id" => $destId,
@@ -56,25 +54,22 @@ class TransactionController extends Controller
                 Transaction::create($newTransaction);
                 return response()->json("Transaction réussi !");
             } else {
-                $this->depot($destId, $montant, $newTransaction);
-                return response()->json("Transaction réussi !");
+                return $this->depot($destId, $montant, $newTransaction);
             }
+        } elseif ($clientId !== $destId && $type == "transfert-simple") {
+            return $this->transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $fraisOmWv);
         } elseif ($type == "depot") {
-            $this->depot($destId, $montant, $newTransaction);
-            return response()->json("Transaction réussi !");
+            return $this->depot($destId, $montant, $newTransaction);
         } elseif ($type == "retrait") {
             if ($montant > Compte::where("client_id", $clientId)->first()->solde) {
                 return response()->json("Vous ne pouvez pas retirer ce montant !");
             } elseif ($fournisseur == "om" || "wv") {
-                $this->retrait($newTransaction, $clientId, $montant, $fraisOmWv);
-                return response()->json("Transaction réussi !");
+                return $this->retrait($newTransaction, $clientId, $montant, $fraisOmWv);
             } elseif ($fournisseur == "cb") {
-                $this->retrait($newTransaction, $clientId, $montant, $fraisCb);
-                return response()->json("Transaction réussi !");
+                return $this->retrait($newTransaction, $clientId, $montant, $fraisCb);
             }
         }
     }
-
     public function depot($destId, $montant, $newTransaction)
     {
         DB::beginTransaction();
@@ -82,6 +77,7 @@ class TransactionController extends Controller
         $newSolde = Compte::where("client_id", $destId)->first()->solde + $montant;
         Compte::where("client_id", $destId)->update(["solde" => $newSolde]);
         DB::commit();
+        return response()->json("Transaction réussi !");
     }
 
     public function retrait($newTransaction, $clientId, $montant, $frais)
@@ -91,6 +87,7 @@ class TransactionController extends Controller
         $newSolde = Compte::where("client_id", $clientId)->first()->solde - ($montant + $frais);
         Compte::where("client_id", $clientId)->update(["solde" => $newSolde]);
         DB::commit();
+        return response()->json("Transaction réussi !");
     }
 
     public function name($numero)
@@ -100,19 +97,21 @@ class TransactionController extends Controller
         return response()->json($numb);
     }
 
-    public function transfert(Request $request)
+    public function transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $frais)
     {
-        $destinataire = $request->destinataire;
-        $montant = $request->montant;
-        $fournisseur = $request->fournisseur;
-        $expediteur = $request->expediteur;
-        $destinataire = $request->destinataire;
-        $type = $request->type;
-        $haveAccount = Compte::where("client_id", $expediteur)->first();
-        if ($montant <= 0) {
-            return "Transfert impossible !";
-        } elseif ($fournisseur !== "Wari" && !$haveAccount) {
-            return "Cet utilisateur n'a pas de compte !";
+        $transact = new Transaction();
+        $numbAccountClient = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur);
+        $numbAccountDest = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire);
+        if (!$numbAccountClient || !$numbAccountDest) {
+            return response()->json("Impossible de faire cette transaction vos fournisseur ne correspondent pas !");
+        } else {
+            if ($montant > $numbAccountClient->solde) {
+                return response()->json("Solde insuffisant !");
+            } else {
+                $this->retrait($newTransaction, $numbAccountClient->client_id, $montant, $frais);
+                $this->depot($numbAccountDest->client_id, $montant, $newTransaction);
+                return response()->json("Transaction réussi !");
+            }
         }
     }
 
@@ -141,8 +140,7 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-        $expediteur = Client::find($request->expediteur)->telephone;
-        $destinataire = Compte::find($request->destinataire);
+        //
     }
 
     /**

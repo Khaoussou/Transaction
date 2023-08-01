@@ -73,9 +73,9 @@
                             <option>Choisis un type de transaction</option>
                             <option value="depot">Dépôt</option>
                             <option value="retrait">Retrait</option>
-                            <option value="tac">Transfert avec code</option>
-                            <option value="tsc">Transfert sans code</option>
-                            <option value="tim">Transfert immediat</option>
+                            <option value="transfert-simple">Transfert simple</option>
+                            <option value="transfert-avec-code">Transfert avec code</option>
+                            <option value="transfert-immediat">Transfert immediat</option>
                         </select>
                     </div>
                 </div>
@@ -83,8 +83,7 @@
         </div>
         <div class="form-group" id="code">
             <label for="destinataire">Veuillez saisir le code de retrait svp !</label>
-            <input type="text" class="form-control w-50"
-                placeholder="Code de retrait" required>
+            <input type="text" class="form-control w-50" placeholder="Code de retrait" required>
         </div>
         <div class="transaction-section detinataire">
             <h4 class="transaction-title des" id="transaction-title">Destinataire</h4>
