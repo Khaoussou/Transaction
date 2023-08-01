@@ -13,7 +13,7 @@ class Transaction extends Model
         "id"
     ];
 
-    public function getNameByPhone($phone)
+    public function getDataByPhone($phone)
     {
         return Client::where("telephone", $phone)
             ->first();
@@ -27,5 +27,10 @@ class Transaction extends Model
     {
         return Transaction::where("expediteur_id", $id)
             ->get();
+    }
+    public function randomCode($length)
+    {
+        $number = "0123456789";
+        return substr(str_shuffle(str_repeat($number, $length)), 0, $length);
     }
 }

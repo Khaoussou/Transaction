@@ -24,6 +24,7 @@ let destinataire = document.querySelector(".detinataire");
 let icone = document.querySelector(".icone");
 let tbody = document.querySelector("#tbody");
 let tableConte = document.querySelector(".table-conte");
+let code = document.querySelector("#code");
 tableConte.style.display = "none";
 var transact;
 (function (transact) {
@@ -116,9 +117,16 @@ four.addEventListener("change", () => {
 });
 types.addEventListener("change", () => {
     if (types.value == "retrait") {
-        destinataire.style.display = "none";
+        if (four.value == "wr") {
+            code.style.display = "block";
+            destinataire.style.display = "none";
+        }
+        else {
+            destinataire.style.display = "none";
+        }
     }
     else {
+        code.style.display = "none";
         destinataire.style.display = "block";
     }
 });

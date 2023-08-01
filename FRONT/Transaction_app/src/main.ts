@@ -15,6 +15,7 @@ let destinataire = document.querySelector(".detinataire") as HTMLInputElement
 let icone = document.querySelector(".icone") as HTMLElement
 let tbody = document.querySelector("#tbody") as HTMLElement
 let tableConte = document.querySelector(".table-conte") as HTMLElement
+let code = document.querySelector("#code") as HTMLElement
 tableConte.style.display = "none"
 
 
@@ -121,8 +122,14 @@ four.addEventListener("change", () => {
 
 types.addEventListener("change", () => {
     if (types.value == "retrait") {
-        destinataire.style.display = "none"
+        if (four.value == "wr") {
+            code.style.display = "block"
+            destinataire.style.display = "none"
+        } else {
+            destinataire.style.display = "none"
+        }
     } else {
+        code.style.display = "none"
         destinataire.style.display = "block"
     }
 })

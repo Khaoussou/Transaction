@@ -16,17 +16,30 @@ class TransactionController extends Controller
      * Display a listing of the resource.
      */
 
-    public function depot(TransactionRequest $request)
+    public function allTransact(Request $request)
     {
         $transact = new Transaction();
-        $destinataire = $request->destinataire;
         $montant = $request->montant;
+        $fraisOmWv = ($montant * 1) / 100;
+        $fraisWr = ($montant * 2) / 100;
+        $fraisCb = ($montant * 5) / 100;
         $fournisseur = $request->fournisseur;
         $expediteur = $request->expediteur;
         $destinataire = $request->destinataire;
+        $clientId = $transact->getDataByPhone($expediteur)->id;
+        $destWrId = $transact->getDataByPhone($destinataire)->id ?? null;
         $type = $request->type;
-        $destId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->client_id;
-        $expId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur)->client_id;
+        $destId = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->client_id ?? null;
+        $numbAccountClient = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur)->numero_compte ?? null;
+        $numbAccountDest = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire)->numero_compte ?? null;
+        $newTransaction = [
+            "expediteur_id" => $clientId,
+            "destinataire_id" => $destId,
+            "date" => Carbon::now(),
+            "montant" => $montant,
+            "type" => $type,
+            "code" => null,
+        ];
         if ($montant < 500) {
             return response()->json("Veuillez donner un montant supérieur ou egale à 500 !");
         } elseif ($fournisseur == "wr" && $montant < 1000) {
@@ -35,29 +48,55 @@ class TransactionController extends Controller
             return response()->json("Veuillez donner un montant supérieur ou egale à 10000 !");
         } elseif ($fournisseur !== "cb" && $montant > 1000000) {
             return response()->json("Impossible de faire cette transaction votre fournisseur ne l'accepte pas !");
-        } elseif ($destId !== $expId) {
-            return response()->json("Les données ne correspondent pas !");
-        } else {
-            $newTransaction = [
-                "expediteur_id" => $expId,
-                "destinataire_id" => $destId,
-                "date" => Carbon::now(),
-                "montant" => $montant,
-                "type" => $type
-            ];
-            DB::beginTransaction();
-            Transaction::create($newTransaction);
-            $newSolde = Compte::where("client_id", $destId)->first()->solde + $montant;
-            Compte::where("client_id", $destId)->update(["solde" => $newSolde]);
-            DB::commit();
+        } elseif ($clientId !== $destId && $type == "depot") {
+            if ($fournisseur == "wr") {
+                $newTransaction["destinataire_id"] = $destWrId;
+                $code = $transact->randomCode(15);
+                $newTransaction["code"] = $code;
+                Transaction::create($newTransaction);
+                return response()->json("Transaction réussi !");
+            } else {
+                $this->depot($destId, $montant, $newTransaction);
+                return response()->json("Transaction réussi !");
+            }
+        } elseif ($type == "depot") {
+            $this->depot($destId, $montant, $newTransaction);
             return response()->json("Transaction réussi !");
+        } elseif ($type == "retrait") {
+            if ($montant > Compte::where("client_id", $clientId)->first()->solde) {
+                return response()->json("Vous ne pouvez pas retirer ce montant !");
+            } elseif ($fournisseur == "om" || "wv") {
+                $this->retrait($newTransaction, $clientId, $montant, $fraisOmWv);
+                return response()->json("Transaction réussi !");
+            } elseif ($fournisseur == "cb") {
+                $this->retrait($newTransaction, $clientId, $montant, $fraisCb);
+                return response()->json("Transaction réussi !");
+            }
         }
+    }
+
+    public function depot($destId, $montant, $newTransaction)
+    {
+        DB::beginTransaction();
+        Transaction::create($newTransaction);
+        $newSolde = Compte::where("client_id", $destId)->first()->solde + $montant;
+        Compte::where("client_id", $destId)->update(["solde" => $newSolde]);
+        DB::commit();
+    }
+
+    public function retrait($newTransaction, $clientId, $montant, $frais)
+    {
+        DB::beginTransaction();
+        Transaction::create($newTransaction);
+        $newSolde = Compte::where("client_id", $clientId)->first()->solde - ($montant + $frais);
+        Compte::where("client_id", $clientId)->update(["solde" => $newSolde]);
+        DB::commit();
     }
 
     public function name($numero)
     {
         $transact = new Transaction();
-        $numb = $transact->getNameByPhone($numero)->prenom;
+        $numb = $transact->getDataByPhone($numero)->prenom;
         return response()->json($numb);
     }
 
@@ -80,7 +119,7 @@ class TransactionController extends Controller
     public function transact($numero)
     {
         $transact = new Transaction();
-        $idClient = $transact->getNameByPhone($numero)->id;
+        $idClient = $transact->getDataByPhone($numero)->id;
         $transactions = $transact->getTransactById($idClient);
         $valeur = [];
         for ($i = 0; $i < count($transactions); $i++) {

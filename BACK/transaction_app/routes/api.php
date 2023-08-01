@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::apiResource("/clients", ClientController::class);
 Route::apiResource("/comptes", CompteController::class);
 Route::apiResource("/transaction", TransactionController::class);
-Route::post("/depot",[TransactionController::class, "depot"]);
+Route::post("/depot",[TransactionController::class, "allTransact"]);
 Route::get("/name/{numero}",[TransactionController::class, "name"]);
 Route::get("/transact/{numero}",[TransactionController::class, "transact"]);
 Route::post("/transfert",[TransactionController::class, "transfert"]);

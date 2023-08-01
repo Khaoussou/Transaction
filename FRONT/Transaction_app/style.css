@@ -69,3 +69,7 @@ hr {
     top: -3.2%;
     right: 0;
 }
+
+#code {
+    display: none;
+}
