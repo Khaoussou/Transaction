@@ -12,7 +12,6 @@ class Transaction extends Model
     protected $guarded = [
         "id"
     ];
-
     public function getDataByPhone($phone)
     {
         return Client::where("telephone", $phone)

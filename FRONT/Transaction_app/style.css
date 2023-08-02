@@ -62,14 +62,21 @@ hr {
 
 .icone {
     cursor: pointer;
+    display: none;
 }
 
 .table-conte {
     position: absolute;
     top: -3.2%;
     right: 0;
+    overflow: scroll;
+    display: none;
 }
 
 #code {
     display: none;
+}
+
+.active {
+    display: block;
 }

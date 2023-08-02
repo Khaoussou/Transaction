@@ -36,6 +36,7 @@
                                 placeholder="Nom complet de l'expéditeur" required>
                             <i class="fa-solid fa-circle-info fa-2x m-1 icone"></i>
                         </div>
+                        <div class="error-exp"></div>
 
                     </div>
                 </div>
@@ -75,7 +76,6 @@
                             <option value="retrait">Retrait</option>
                             <option value="transfert-simple">Transfert simple</option>
                             <option value="transfert-avec-code">Transfert avec code</option>
-                            <option value="transfert-immediat">Transfert immediat</option>
                         </select>
                     </div>
                 </div>
@@ -100,6 +100,7 @@
                         <label for="destinataire_nom">Nom complet</label>
                         <input type="text" class="form-control" id="destinataire_nom"
                             placeholder="Nom complet du destinataire" required>
+                        <div class="error-des"></div>
                     </div>
                 </div>
             </div>
@@ -122,6 +123,21 @@
 
             </tbody>
         </table>
+    </div>
+    <div class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bonjour voici votre code de retrait</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-close" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

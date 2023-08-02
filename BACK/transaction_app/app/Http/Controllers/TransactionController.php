@@ -21,11 +21,10 @@ class TransactionController extends Controller
         $transact = new Transaction();
         $montant = $request->montant;
         $fraisOmWv = ($montant * 1) / 100;
-        $fraisWr = ($montant * 2) / 100;
         $fraisCb = ($montant * 5) / 100;
         $fournisseur = $request->fournisseur;
-        $expediteur = $request->expediteur;
-        $destinataire = $request->destinataire;
+        $expediteur = explode("_", $request->expediteur)[count(explode("_", $request->expediteur)) - 1];
+        $destinataire = explode("_", $request->destinataire)[count(explode("_", $request->destinataire)) - 1];
         $clientId = $transact->getDataByPhone($expediteur)->id;
         $destWrId = $transact->getDataByPhone($destinataire)->id ?? null;
         $type = $request->type;
@@ -52,12 +51,12 @@ class TransactionController extends Controller
                 $code = $transact->randomCode(15);
                 $newTransaction["code"] = $code;
                 Transaction::create($newTransaction);
-                return response()->json("Transaction réussi !");
+                return response()->json("Transaction réussi votre code a été généré !");
             } else {
                 return $this->depot($destId, $montant, $newTransaction);
             }
-        } elseif ($clientId !== $destId && $type == "transfert-simple") {
-            return $this->transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $fraisOmWv);
+        } elseif ($clientId !== $destId && ($type == "transfert-simple" || $type == "transfert-avec-code" || $type == "transfert-immediat")) {
+            return $this->transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $fraisOmWv, $type);
         } elseif ($type == "depot") {
             return $this->depot($destId, $montant, $newTransaction);
         } elseif ($type == "retrait") {
@@ -79,7 +78,6 @@ class TransactionController extends Controller
         DB::commit();
         return response()->json("Transaction réussi !");
     }
-
     public function retrait($newTransaction, $clientId, $montant, $frais)
     {
         DB::beginTransaction();
@@ -89,36 +87,68 @@ class TransactionController extends Controller
         DB::commit();
         return response()->json("Transaction réussi !");
     }
-
     public function name($numero)
     {
         $transact = new Transaction();
-        $numb = $transact->getDataByPhone($numero)->prenom;
-        return response()->json($numb);
+        $expediteur = explode("_", $numero);
+        if (strlen($numero) == 12) {
+            if (count($expediteur) > 0 && !$transact->getIdByNumero($numero)) {
+                return response()->json("Ce compte utilisateur n'existe pas !");
+            }
+        }
+        $phone = $expediteur[count($expediteur) - 1];
+        $client = $transact->getDataByPhone($phone);
+        if (strlen($phone) == 9 && !$client) {
+            return response()->json("Cet utilisateur n'existe pas !");
+        }
+        if (strlen($phone) == 9) {
+            $numb = $client->prenom . " " . $client->nom;
+            return response()->json($numb);
+        }
     }
-
-    public function transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $frais)
+    public function transfert($destinataire, $expediteur, $montant, $fournisseur, $newTransaction, $frais, $type)
     {
         $transact = new Transaction();
+        $idDest = $transact->getDataByPhone($destinataire)->id;
+        $accountExist = Compte::where("client_id", $idDest)->first();
         $numbAccountClient = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $expediteur);
         $numbAccountDest = $transact->getIdByNumero(strtoupper($fournisseur) . "_" . $destinataire);
+        if (!$accountExist && $type == "transfert-avec-code") {
+            if ($montant > $numbAccountClient->solde) {
+                return response()->json("Solde insuffisant !");
+            } else {
+                $code = $transact->randomCode(25);
+                $newTransaction["code"] = $code;
+                $newTransaction["destinataire_id"] = $idDest;
+                $this->retrait($newTransaction, $numbAccountClient->client_id, $montant, $frais);
+                return response()->json("Transaction réussi votre code a été généré !");
+            }
+        }
         if (!$numbAccountClient || !$numbAccountDest) {
             return response()->json("Impossible de faire cette transaction vos fournisseur ne correspondent pas !");
         } else {
             if ($montant > $numbAccountClient->solde) {
                 return response()->json("Solde insuffisant !");
-            } else {
+            } elseif ($type == "transfert-simple") {
                 $this->retrait($newTransaction, $numbAccountClient->client_id, $montant, $frais);
                 $this->depot($numbAccountDest->client_id, $montant, $newTransaction);
                 return response()->json("Transaction réussi !");
+            } elseif ($type == "transfert-immediat") {
+                $code = $transact->randomCode(30);
+                $newTransaction["code"] = $code;
+                $this->retrait($newTransaction, $numbAccountClient->client_id, $montant, $frais);
+                $this->depot($numbAccountDest->client_id, $montant, $newTransaction);
+                return response()->json("Transaction réussi veuillez retirer l'argent dans les prochaines 24h merci !");
+            } elseif ($type == "transfert-avec-code") {
+                return response()->json("Désolé cette transaction ne peut marcher, veuillez faire une transaction simple svp !");
             }
         }
     }
-
     public function transact($numero)
     {
         $transact = new Transaction();
-        $idClient = $transact->getDataByPhone($numero)->id;
+        $phone = explode("_", $numero)[count(explode("_", $numero)) - 1];
+        $idClient = $transact->getDataByPhone($phone)->id;
         $transactions = $transact->getTransactById($idClient);
         $valeur = [];
         for ($i = 0; $i < count($transactions); $i++) {

@@ -16,13 +16,10 @@ let icone = document.querySelector(".icone") as HTMLElement
 let tbody = document.querySelector("#tbody") as HTMLElement
 let tableConte = document.querySelector(".table-conte") as HTMLElement
 let code = document.querySelector("#code") as HTMLElement
-tableConte.style.display = "none"
-
-
-
-
-
-
+let modal = document.querySelector(".modal") as HTMLElement
+let btnClose = document.querySelector(".btn-close") as HTMLButtonElement
+let errorDes = document.querySelector(".error-des") as HTMLElement
+let errorExp = document.querySelector(".error-exp") as HTMLElement
 
 enum transact {
     om = "#ff4500",
@@ -30,6 +27,7 @@ enum transact {
     wr = "#008044",
     cb = "#deb887"
 }
+
 
 function creatingElement(elName: string, attributs: any, elementContent: any) {
     const element = document.createElement(elName);
@@ -56,14 +54,14 @@ async function getData(url: string) {
 }
 
 function emptyField(inputs: any) {
-    inputs.forEach(input => {
+    inputs.forEach((input: any) => {
         input.value = ''
     })
 }
 
 function chargerData(tabs: any) {
     tbody.innerHTML = ""
-    tabs.forEach(tab => {
+    tabs.forEach((tab: any) => {
         let tr = creatingElement('tr', { class: '' }, "")
         let date = creatingElement('td', { class: '' }, tab.date)
         let type = creatingElement('td', { class: '' }, tab.type)
@@ -73,18 +71,13 @@ function chargerData(tabs: any) {
     });
 }
 
-icone.addEventListener("click", () => {
-    let expediteur: string = exp?.value
-    let data = getData(Url + "transact/" + expediteur)
-    data.then(res => {
-        tableConte.style.display = "block"
-        chargerData(res)
-    })
+btnClose.addEventListener("click", () => {
+    modal.style.display = "none";
 })
 
 icone.style.display = "none";
 
-expediteur_nom.addEventListener("focus", () => {
+exp.addEventListener("input", () => {
     let expediteur: string = exp?.value
     if (expediteur_nom.value !== " ") {
         icone.style.display = "block"
@@ -93,9 +86,23 @@ expediteur_nom.addEventListener("focus", () => {
     }
     let data = getData(Url + "name/" + expediteur)
     data.then(res => {
-        expediteur_nom.value = res
+        if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
+            afficheMessage(res, errorExp)
+            expediteur_nom.value = ""
+        } else {
+            expediteur_nom.value = res
+        }
     }).catch(error => {
         afficheMessage("Client", expediteur_nom)
+    })
+})
+
+icone.addEventListener("click", () => {
+    let expediteur: string = exp?.value
+    let data = getData(Url + "transact/" + expediteur)
+    data.then(res => {
+        tableConte.classList.toggle("active")
+        chargerData(res)
     })
 })
 
@@ -117,6 +124,8 @@ four.addEventListener("change", () => {
     if (four.value == "cb") {
         transactionTitle.style.backgroundColor = transact.cb
         desTitle.style.backgroundColor = transact.cb
+        let option = creatingElement("option", { value: "transfert-immediat" }, "Transfert immediat");
+        types.appendChild(option);
     }
 })
 
@@ -134,11 +143,18 @@ types.addEventListener("change", () => {
     }
 })
 
-destinataire_nom.addEventListener("focus", () => {
+des.addEventListener("input", () => {
     let destinataire: string = des?.value
     let data = getData(Url + "name/" + destinataire)
     data.then(res => {
-        destinataire_nom.value = res
+        if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
+            afficheMessage(res, errorDes)
+            destinataire_nom.value = ""
+        } else {
+            destinataire_nom.value = res
+        }
+    }).catch(error => {
+        afficheMessage("Client", destinataire_nom)
     })
 })
 
@@ -157,7 +173,7 @@ save.addEventListener("click", () => {
         return acc;
     }, {});
 
-    fetch(Url + "depot", {
+    fetch(Url + "transaction", {
         method: "POST",
         headers: {
             "Content-type": "application/json",
@@ -168,6 +184,6 @@ save.addEventListener("click", () => {
         afficheMessage(data, container)
     }
     ))
-    tableConte.style.display = "none" 
+    tableConte.style.display = "none"
     // emptyField(formControl)
 })

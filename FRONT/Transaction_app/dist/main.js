@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -25,7 +26,10 @@ let icone = document.querySelector(".icone");
 let tbody = document.querySelector("#tbody");
 let tableConte = document.querySelector(".table-conte");
 let code = document.querySelector("#code");
-tableConte.style.display = "none";
+let modal = document.querySelector(".modal");
+let btnClose = document.querySelector(".btn-close");
+let errorDes = document.querySelector(".error-des");
+let errorExp = document.querySelector(".error-exp");
 var transact;
 (function (transact) {
     transact["om"] = "#ff4500";
@@ -56,13 +60,13 @@ function getData(url) {
     });
 }
 function emptyField(inputs) {
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
         input.value = '';
     });
 }
 function chargerData(tabs) {
     tbody.innerHTML = "";
-    tabs.forEach(tab => {
+    tabs.forEach((tab) => {
         let tr = creatingElement('tr', { class: '' }, "");
         let date = creatingElement('td', { class: '' }, tab.date);
         let type = creatingElement('td', { class: '' }, tab.type);
@@ -71,16 +75,11 @@ function chargerData(tabs) {
         tbody.append(tr);
     });
 }
-icone.addEventListener("click", () => {
-    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
-    let data = getData(Url + "transact/" + expediteur);
-    data.then(res => {
-        tableConte.style.display = "block";
-        chargerData(res);
-    });
+btnClose.addEventListener("click", () => {
+    modal.style.display = "none";
 });
 icone.style.display = "none";
-expediteur_nom.addEventListener("focus", () => {
+exp.addEventListener("input", () => {
     let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
     if (expediteur_nom.value !== " ") {
         icone.style.display = "block";
@@ -90,9 +89,23 @@ expediteur_nom.addEventListener("focus", () => {
     }
     let data = getData(Url + "name/" + expediteur);
     data.then(res => {
-        expediteur_nom.value = res;
+        if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
+            afficheMessage(res, errorExp);
+            expediteur_nom.value = "";
+        }
+        else {
+            expediteur_nom.value = res;
+        }
     }).catch(error => {
         afficheMessage("Client", expediteur_nom);
+    });
+});
+icone.addEventListener("click", () => {
+    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
+    let data = getData(Url + "transact/" + expediteur);
+    data.then(res => {
+        tableConte.classList.toggle("active");
+        chargerData(res);
     });
 });
 four.addEventListener("change", () => {
@@ -113,6 +126,8 @@ four.addEventListener("change", () => {
     if (four.value == "cb") {
         transactionTitle.style.backgroundColor = transact.cb;
         desTitle.style.backgroundColor = transact.cb;
+        let option = creatingElement("option", { value: "transfert-immediat" }, "Transfert immediat");
+        types.appendChild(option);
     }
 });
 types.addEventListener("change", () => {
@@ -130,11 +145,19 @@ types.addEventListener("change", () => {
         destinataire.style.display = "block";
     }
 });
-destinataire_nom.addEventListener("focus", () => {
+des.addEventListener("input", () => {
     let destinataire = des === null || des === void 0 ? void 0 : des.value;
     let data = getData(Url + "name/" + destinataire);
     data.then(res => {
-        destinataire_nom.value = res;
+        if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
+            afficheMessage(res, errorDes);
+            destinataire_nom.value = "";
+        }
+        else {
+            destinataire_nom.value = res;
+        }
+    }).catch(error => {
+        afficheMessage("Client", destinataire_nom);
     });
 });
 let tab = [];
@@ -150,7 +173,7 @@ save.addEventListener("click", () => {
         acc[cle] = valeur;
         return acc;
     }, {});
-    fetch(Url + "depot", {
+    fetch(Url + "transaction", {
         method: "POST",
         headers: {
             "Content-type": "application/json",
