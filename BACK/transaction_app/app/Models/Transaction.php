@@ -12,20 +12,15 @@ class Transaction extends Model
     protected $guarded = [
         "id"
     ];
-    public function getDataByPhone($phone)
-    {
-        return Client::where("telephone", $phone)
-            ->first();
-    }
-    public function getIdByNumero($numero)
-    {
-        return Compte::where("numero_compte", $numero)
-            ->first();
-    }
     public function getTransactById($id)
     {
         return Transaction::where("expediteur_id", $id)
             ->get();
+    }
+    public function getTransactByCode($code)
+    {
+        return Transaction::where("code", $code)
+            ->first();
     }
     public function randomCode($length)
     {

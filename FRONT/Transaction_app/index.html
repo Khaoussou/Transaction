@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transactions</title>
-    <script src="dist/main.js" defer></script>
+    <script src="dist/main.js" type="module" defer></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
         integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
@@ -17,9 +17,19 @@
     <div class="container mt-3 rounded p-4 col-md-5 row-">
 
         <h1 class="text-center">Breukh Transaction</h1>
-
+        <i class="fa-solid fa-user-plus" id="icone"></i>
         <div class="transaction-section">
-            <h4 class="transaction-title" id="transaction-title">Expéditeur</h4>
+            <div class="d-flex w-100 justify-content-between">
+                <h4 class="transaction-title" id="transaction-title">Expéditeur</h4>
+                <div class="dropdown">
+                    <select class="form-control" id="etat">
+                        <option>Faites votre choix</option>
+                        <option value="0">Débloqué le compte</option>
+                        <option value="1">Bloqué le compte</option>
+                        <option value="2">Fermé le compte</option>
+                    </select>
+                </div>
+            </div>
             <div class="row">
                 <div class="col">
                     <div class="form-group">
@@ -48,15 +58,6 @@
             <div class="row">
                 <div class="col">
                     <div class="form-group">
-                        <label for="montant">Montant</label>
-                        <input type="number" class="form-control" id="montant" placeholder="Montant de la transaction"
-                            required>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
                         <label for="fournisseur">Fournisseur</label>
                         <select class="form-control" id="fournisseur" required>
                             <option>Choisis un fournisseur</option>
@@ -72,18 +73,24 @@
                         <label for="type_transaction">Type de transaction</label>
                         <select class="form-control" id="type_transaction" required>
                             <option>Choisis un type de transaction</option>
-                            <option value="depot">Dépôt</option>
-                            <option value="retrait">Retrait</option>
-                            <option value="transfert-simple">Transfert simple</option>
-                            <option value="transfert-avec-code">Transfert avec code</option>
                         </select>
                     </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="montant">Montant</label>
+                        <input type="number" class="form-control" id="montant" placeholder="Montant de la transaction"
+                            required>
+                    </div>
+                    <div class="error-mont"></div>
                 </div>
             </div>
         </div>
         <div class="form-group" id="code">
             <label for="destinataire">Veuillez saisir le code de retrait svp !</label>
-            <input type="text" class="form-control w-50" placeholder="Code de retrait" required>
+            <input type="text" id="code-retrait" class="form-control w-50" placeholder="Code de retrait" required>
         </div>
         <div class="transaction-section detinataire">
             <h4 class="transaction-title des" id="transaction-title">Destinataire</h4>
@@ -112,11 +119,20 @@
     </div>
     <div class="container mt-5 table-conte w-25 position-absolute top-0 p-4 col-md-5">
         <table class="table table-bordered">
+            <div class="form-group">
+                <label for="type_filtrage">Filtrer par: </label>
+                <select class="form-control" id="filtre" required>
+                    <option>Choisis un type de filtrage</option>
+                    <option value="date">Date</option>
+                    <option value="mont">Montant</option>
+                </select>
+            </div>
             <thead>
                 <tr>
                     <th>Date</th>
                     <th>Type</th>
                     <th>Montant</th>
+                    <th>Code</th>
                 </tr>
             </thead>
             <tbody id="tbody">
@@ -124,17 +140,71 @@
             </tbody>
         </table>
     </div>
-    <div class="modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Bonjour voici votre code de retrait</h5>
+    <div class="bloc-modal">
+        <div class="modal1" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Bonjour veuillez remplir les champs suivants svp!</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="fournisseur">Fournisseur</label>
+                            <select class="form-control" id="choix-four" required>
+                                <option>Choisis un fournisseur</option>
+                                <option value="om">Orange Money</option>
+                                <option value="wv">Wave</option>
+                                <option value="wr">Wari</option>
+                                <option value="cb">Compte Bancaire</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="valider"
+                                data-bs-dismiss="modal">Valider</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-close"
+                                data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <p>Modal body text goes here.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-close" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    <div class="bloc-modal1">
+        <div class="modal1" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Bonjour veuillez remplir les champs suivants svp!</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="destinataire">Nom</label>
+                            <input type="text" class="form-control" id="nom" placeholder="Nom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="destinataire">Prénom</label>
+                            <input type="text" class="form-control" id="prenom" placeholder="Prénom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="destinataire">Numéro tel</label>
+                            <input type="text" class="form-control" id="phone" placeholder="Numéro de téléphone"
+                                required>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="ajout"
+                                data-bs-dismiss="modal">Valider</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-close" id="close"
+                                data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

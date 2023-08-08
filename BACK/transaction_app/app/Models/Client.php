@@ -17,4 +17,9 @@ class Client extends Model
     {
         return $this->hasMany(Compte::class);
     }
+    public function getDataByPhone($phone)
+    {
+        return Client::where("telephone", $phone)
+            ->first();
+    }
 }

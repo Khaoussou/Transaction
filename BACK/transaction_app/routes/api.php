@@ -22,10 +22,16 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
+// Route::apiResource("/transaction", TransactionController::class);
+
+Route::post("/transaction",[TransactionController::class, "allTransact"]);
+Route::put("/etat/{numero}", [CompteController::class, "updateState"]);
+Route::get("/bool/{numero}", [CompteController::class, "haveAccount"]);
+Route::get("/name/{numero}",[TransactionController::class, "name"]);
+Route::post("/annulertransact",[TransactionController::class, "annulerTransact"]);
+Route::get("/transact/{numero}",[TransactionController::class, "transact"]);
+Route::get("/transact/{numero}",[TransactionController::class, "transact"]);
+Route::post("/errorRetrait",[TransactionController::class, "errorRetrait"]);
+Route::post("/transfert",[TransactionController::class, "transfert"]);
 Route::apiResource("/clients", ClientController::class);
 Route::apiResource("/comptes", CompteController::class);
-// Route::apiResource("/transaction", TransactionController::class);
-Route::post("/transaction",[TransactionController::class, "allTransact"]);
-Route::get("/name/{numero}",[TransactionController::class, "name"]);
-Route::get("/transact/{numero}",[TransactionController::class, "transact"]);
-Route::post("/transfert",[TransactionController::class, "transfert"]);

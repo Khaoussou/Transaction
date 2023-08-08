@@ -1,35 +1,6 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+import { save, expediteur_nom, destinataire_nom, exp, des, montants, types, four, transactionTitle, desTitle, container, formControl, destinataire, icone, tableConte, code, codeRetrait, blocModal, blocModal1, btnClose, valider, errorDes, errorExp, errorMont, etat, dropdown, fournisseur, user, ajoutUser, closeAjout, nom, prenom, phone, filtre } from "./dom.js";
+import { creatingElement, afficheMessage, emptyField, chargerData } from "./function.js";
 const Url = "http://127.0.0.1:8000/api/";
-const save = document.querySelector("#save");
-let expediteur_nom = document.querySelector("#expediteur_nom");
-let destinataire_nom = document.querySelector("#destinataire_nom");
-let exp = document.querySelector("#expediteur");
-let des = document.querySelector("#destinataire");
-let montants = document.querySelector("#montant");
-let types = document.querySelector("#type_transaction");
-let four = document.querySelector("#fournisseur");
-let transactionTitle = document.querySelector(".trans");
-let desTitle = document.querySelector(".des");
-let container = document.querySelector(".container");
-let formControl = document.querySelectorAll(".form-control");
-let destinataire = document.querySelector(".detinataire");
-let icone = document.querySelector(".icone");
-let tbody = document.querySelector("#tbody");
-let tableConte = document.querySelector(".table-conte");
-let code = document.querySelector("#code");
-let modal = document.querySelector(".modal");
-let btnClose = document.querySelector(".btn-close");
-let errorDes = document.querySelector(".error-des");
-let errorExp = document.querySelector(".error-exp");
 var transact;
 (function (transact) {
     transact["om"] = "#ff4500";
@@ -37,104 +8,232 @@ var transact;
     transact["wr"] = "#008044";
     transact["cb"] = "#deb887";
 })(transact || (transact = {}));
-function creatingElement(elName, attributs, elementContent) {
-    const element = document.createElement(elName);
-    for (const cle in attributs) {
-        element.setAttribute(cle, attributs[cle]);
-    }
-    element.textContent = elementContent;
-    return element;
+async function getData(url) {
+    const data = await fetch(url);
+    const d = await data.json();
+    return d;
 }
-function afficheMessage(message, container) {
-    const mess = creatingElement('div', { class: 'mess dflex jcc aic' }, message);
-    container.append(mess);
-    setTimeout(() => {
-        container.removeChild(mess);
-    }, 5000);
-}
-function getData(url) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const data = yield fetch(url);
-        const d = yield data.json();
-        return d;
-    });
-}
-function emptyField(inputs) {
-    inputs.forEach((input) => {
-        input.value = '';
-    });
-}
-function chargerData(tabs) {
-    tbody.innerHTML = "";
-    tabs.forEach((tab) => {
-        let tr = creatingElement('tr', { class: '' }, "");
-        let date = creatingElement('td', { class: '' }, tab.date);
-        let type = creatingElement('td', { class: '' }, tab.type);
-        let montant = creatingElement('td', { class: '' }, tab.montant);
-        tr.append(date, type, montant);
-        tbody.append(tr);
-    });
-}
+valider.addEventListener("click", () => {
+    fetch(Url + "comptes", {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({ "telephone": exp?.value, "fournisseur": fournisseur?.value })
+    }).then(res => res.json().then(data => {
+        afficheMessage(data, container);
+    }));
+    blocModal.style.display = "none";
+});
 btnClose.addEventListener("click", () => {
-    modal.style.display = "none";
+    blocModal.style.display = "none";
+});
+user.addEventListener("click", () => {
+    blocModal1.style.display = "block";
+});
+ajoutUser.addEventListener("click", () => {
+    let newUser = {
+        nom: nom.value,
+        prenom: prenom.value,
+        telephone: phone.value,
+    };
+    fetch(Url + "clients", {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify(newUser)
+    }).then(response => response.json().then(data => {
+        afficheMessage(data.message, container);
+    }));
+    blocModal1.style.display = "none";
+    emptyField(formControl);
+});
+closeAjout.addEventListener("click", () => {
+    blocModal1.style.display = "none";
 });
 icone.style.display = "none";
 exp.addEventListener("input", () => {
-    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
-    if (expediteur_nom.value !== " ") {
-        icone.style.display = "block";
-    }
-    else {
-        icone.style.display = "none";
-    }
+    let expediteur = exp?.value;
     let data = getData(Url + "name/" + expediteur);
     data.then(res => {
         if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
             afficheMessage(res, errorExp);
             expediteur_nom.value = "";
+            dropdown.style.display = "none";
+            icone.style.display = "none";
         }
         else {
+            let bool = getData(Url + "bool/" + expediteur);
+            bool.then(res => {
+                if (res == "ok") {
+                    dropdown.style.display = "block";
+                }
+                else {
+                    etat.innerHTML = "";
+                    let option = creatingElement("option", { value: "" }, "Faites votre choix");
+                    let option1 = creatingElement("option", { value: "add" }, "Ouverture de compte");
+                    etat.append(option, option1);
+                }
+            });
             expediteur_nom.value = res;
+            dropdown.style.display = "block";
+            icone.style.display = "block";
         }
     }).catch(error => {
         afficheMessage("Client", expediteur_nom);
     });
 });
+etat.addEventListener("change", () => {
+    let expediteur = exp?.value;
+    if (etat.value != "1" && etat.value != "0" && etat.value != "2") {
+        blocModal.style.display = "block";
+    }
+    else {
+        fetch(Url + "etat/" + expediteur, {
+            method: "PUT",
+            headers: {
+                "Content-type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({ "etat": etat.value })
+        }).then(res => res.json().then(data => {
+            afficheMessage(data, container);
+        }));
+    }
+});
 icone.addEventListener("click", () => {
-    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
+    let expediteur = exp?.value;
     let data = getData(Url + "transact/" + expediteur);
-    data.then(res => {
+    let responses;
+    data.then(response => {
+        chargerData(response);
+        filtre.addEventListener("click", () => {
+            if (filtre.value == "date") {
+                responses = response.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                chargerData(responses);
+            }
+            else if (filtre.value == "mont") {
+                responses = response.sort((a, b) => (a.montant) - (b.montant));
+                chargerData(responses);
+            }
+            responses.forEach((res) => {
+                if (res.type == "transfert-simple") {
+                    let cancel = document.querySelector(".remove");
+                    let tr = document.querySelector(".annuler");
+                    cancel?.addEventListener("click", () => {
+                        fetch(Url + "annulertransact", {
+                            method: "POST",
+                            headers: {
+                                "Content-type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                "exp": res.exp,
+                                "des": res.des,
+                                "montant": res.montant,
+                            })
+                        }).then(response => response.json().then(data => {
+                            afficheMessage(data, container);
+                            cancel.style.backgroundColor = "red";
+                            tr.removeChild(cancel);
+                        }));
+                    });
+                }
+            });
+        });
         tableConte.classList.toggle("active");
-        chargerData(res);
     });
 });
 four.addEventListener("change", () => {
     transactionTitle.style.color = "white";
     desTitle.style.color = "white";
     if (four.value == "om") {
+        types.innerHTML = "";
         transactionTitle.style.backgroundColor = transact.om;
         desTitle.style.backgroundColor = transact.om;
+        let optionDefault = creatingElement("option", { value: "" }, "Choisis un type de transaction");
+        let depot = creatingElement("option", { value: "depot" }, "Dépot");
+        let retrait = creatingElement("option", { value: "retrait" }, "Retrait");
+        let tranSimple = creatingElement("option", { value: "transfert-simple" }, "Transfert simple");
+        let tranAvecCode = creatingElement("option", { value: "transfert-avec-code" }, "Transfert avec code");
+        types.append(optionDefault, depot, retrait, tranSimple, tranAvecCode);
     }
     if (four.value == "wv") {
+        types.innerHTML = "";
+        let optionDefault = creatingElement("option", { value: "" }, "Choisis un type de transaction");
+        let depot = creatingElement("option", { value: "depot" }, "Dépot");
+        let retrait = creatingElement("option", { value: "retrait" }, "Retrait");
+        let tranSimple = creatingElement("option", { value: "transfert-simple" }, "Transfert simple");
+        types.append(optionDefault, depot, retrait, tranSimple);
         transactionTitle.style.backgroundColor = transact.wv;
         desTitle.style.backgroundColor = transact.wv;
     }
     if (four.value == "wr") {
+        types.innerHTML = "";
+        let optionDefault = creatingElement("option", { value: "" }, "Choisis un type de transaction");
+        let depot = creatingElement("option", { value: "depot" }, "Dépot");
+        let retrait = creatingElement("option", { value: "retrait" }, "Retrait");
+        let tranSimple = creatingElement("option", { value: "transfert-simple" }, "Transfert simple");
+        types.append(optionDefault, depot, retrait, tranSimple);
         transactionTitle.style.backgroundColor = transact.wr;
         desTitle.style.backgroundColor = transact.wr;
     }
     if (four.value == "cb") {
+        types.innerHTML = "";
+        let optionDefault = creatingElement("option", { value: "" }, "Choisis un type de transaction");
+        let depot = creatingElement("option", { value: "depot" }, "Dépot");
+        let retrait = creatingElement("option", { value: "retrait" }, "Retrait");
+        let tranSimple = creatingElement("option", { value: "transfert-simple" }, "Transfert simple");
+        let option = creatingElement("option", { value: "transfert-immediat" }, "Transfert immediat");
+        types.append(optionDefault, depot, retrait, tranSimple, option);
         transactionTitle.style.backgroundColor = transact.cb;
         desTitle.style.backgroundColor = transact.cb;
-        let option = creatingElement("option", { value: "transfert-immediat" }, "Transfert immediat");
-        types.appendChild(option);
     }
 });
 types.addEventListener("change", () => {
+    let expediteur = exp?.value;
     if (types.value == "retrait") {
-        if (four.value == "wr") {
-            code.style.display = "block";
-            destinataire.style.display = "none";
+        montants.addEventListener("input", () => {
+            if (montants.value.length >= 3) {
+                fetch(Url + "errorRetrait", {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ "exp": exp?.value, "montant": montants?.value })
+                }).then(res => res.json().then(data => {
+                    if (data != "Montant disponible voici les frais : " + (+montants?.value * 1) / 100 + " FCFA") {
+                        errorMont.style.color = "red";
+                        montants.classList.toggle("couleur");
+                        console.log(montants);
+                        errorMont.innerHTML = data;
+                    }
+                    else {
+                        errorMont.innerHTML = " ";
+                        errorMont.style.color = "green";
+                        afficheMessage(data, errorMont);
+                    }
+                }));
+            }
+        });
+        if (four.value == "wr" || four.value == "om") {
+            let bool = getData(Url + "bool/" + expediteur);
+            bool.then(res => {
+                if (res == "ko") {
+                    code.style.display = "block";
+                    montants.disabled = true;
+                    destinataire.style.display = "none";
+                }
+                else {
+                    code.style.display = "none";
+                    montants.disabled = false;
+                    destinataire.style.display = "none";
+                }
+            });
         }
         else {
             destinataire.style.display = "none";
@@ -142,11 +241,12 @@ types.addEventListener("change", () => {
     }
     else {
         code.style.display = "none";
+        montants.disabled = false;
         destinataire.style.display = "block";
     }
 });
 des.addEventListener("input", () => {
-    let destinataire = des === null || des === void 0 ? void 0 : des.value;
+    let destinataire = des?.value;
     let data = getData(Url + "name/" + destinataire);
     data.then(res => {
         if (res == "Cet utilisateur n'existe pas !" || res == "Ce compte utilisateur n'existe pas !") {
@@ -160,28 +260,25 @@ des.addEventListener("input", () => {
         afficheMessage("Client", destinataire_nom);
     });
 });
-let tab = [];
 save.addEventListener("click", () => {
-    let expediteur = exp === null || exp === void 0 ? void 0 : exp.value;
-    let montant = montants === null || montants === void 0 ? void 0 : montants.value;
-    let type = types === null || types === void 0 ? void 0 : types.value;
-    let destinataire = des === null || des === void 0 ? void 0 : des.value;
-    let fournisseur = four === null || four === void 0 ? void 0 : four.value;
-    tab.push(destinataire, expediteur, type, montant, fournisseur);
-    const newTab = tab.reduce((acc, valeur, index) => {
-        const cle = ["destinataire", "expediteur", "type", "montant", "fournisseur"][index];
-        acc[cle] = valeur;
-        return acc;
-    }, {});
+    let newTransact = {
+        destinataire: des?.value,
+        expediteur: exp?.value,
+        type: types?.value,
+        montant: montants?.value,
+        fournisseur: four?.value,
+        code: codeRetrait?.value,
+    };
     fetch(Url + "transaction", {
         method: "POST",
         headers: {
             "Content-type": "application/json",
             "Accept": "application/json"
         },
-        body: JSON.stringify(newTab)
+        body: JSON.stringify(newTransact)
     }).then(res => res.json().then(data => {
         afficheMessage(data, container);
     }));
-    tableConte.style.display = "none";
+    dropdown.style.display = "none";
+    emptyField(formControl);
 });

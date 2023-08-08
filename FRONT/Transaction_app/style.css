@@ -12,7 +12,6 @@
 
 h1 {
     margin-bottom: 50px;
-    color: red;
 }
 
 hr {
@@ -79,4 +78,29 @@ hr {
 
 .active {
     display: block;
+}
+
+.dropdown {
+    display: none;
+}
+
+.bloc-modal,
+.bloc-modal1 {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+}
+
+#icone {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    cursor: pointer;
+}
+
+.couleur {
+    border: 3px solid red;
 }

@@ -1,0 +1,37 @@
+
+export let save = document.querySelector("#save") as HTMLElement;
+export let expediteur_nom = document.querySelector("#expediteur_nom") as HTMLInputElement
+export let destinataire_nom = document.querySelector("#destinataire_nom") as HTMLInputElement
+export let exp = document.querySelector("#expediteur") as HTMLInputElement
+export let des = document.querySelector("#destinataire") as HTMLInputElement
+export let montants = document.querySelector("#montant") as HTMLInputElement
+export let types = document.querySelector("#type_transaction") as HTMLSelectElement
+export let four = document.querySelector("#fournisseur") as HTMLInputElement
+export let transactionTitle = document.querySelector(".trans") as HTMLElement
+export let desTitle = document.querySelector(".des") as HTMLElement
+export let container = document.querySelector(".container") as HTMLElement
+export let formControl = document.querySelectorAll(".form-control") as NodeListOf<Element>
+export let destinataire = document.querySelector(".detinataire") as HTMLInputElement
+export let icone = document.querySelector(".icone") as HTMLElement
+export let tbody = document.querySelector("#tbody") as HTMLElement
+export let tableConte = document.querySelector(".table-conte") as HTMLElement
+export let code = document.querySelector("#code") as HTMLElement
+export let codeRetrait = document.querySelector("#code-retrait") as HTMLInputElement
+export let blocModal = document.querySelector(".bloc-modal") as HTMLElement
+export let blocModal1 = document.querySelector(".bloc-modal1") as HTMLElement
+export let btnClose = document.querySelector(".btn-close") as HTMLButtonElement
+export let valider = document.querySelector("#valider") as HTMLButtonElement
+export let errorDes = document.querySelector(".error-des") as HTMLElement
+export let errorExp = document.querySelector(".error-exp") as HTMLElement
+export let errorMont = document.querySelector(".error-mont") as HTMLElement
+export let etat = document.querySelector("#etat") as HTMLSelectElement
+export let dropdown = document.querySelector(".dropdown") as HTMLElement
+export let fournisseur = document.querySelector("#choix-four") as HTMLInputElement
+export let user = document.querySelector("#icone") as HTMLElement
+export let ajoutUser = document.querySelector("#ajout") as HTMLButtonElement
+export let closeAjout = document.querySelector("#close") as HTMLButtonElement
+export let nom = document.querySelector("#nom") as HTMLInputElement
+export let prenom = document.querySelector("#prenom") as HTMLInputElement
+export let phone = document.querySelector("#phone") as HTMLInputElement
+export let filtre = document.querySelector("#filtre") as HTMLSelectElement
+

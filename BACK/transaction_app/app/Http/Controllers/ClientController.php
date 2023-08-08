@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ClientPostRequest;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
 class ClientController extends Controller
 {
@@ -20,9 +23,17 @@ class ClientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ClientPostRequest $request)
     {
-        //
+        $newClient = [
+            "nom" => strtoupper($request->nom),
+            "prenom" => $request->prenom,
+            "telephone" => $request->telephone,
+        ];
+        return response()->json([
+            "message" => "Insertion réussie !",
+            "data" => Client::create($newClient),
+        ]);
     }
 
     /**

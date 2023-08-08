@@ -22,8 +22,8 @@ class TransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "expediteur" => "required",
-            "destinataire" => "required",
+            "expediteur" => "required|min:9",
+            "destinataire" => "required|min:9",
             "type" => "required",
             "montant" => "required",
             "fournisseur" => "required"
@@ -33,7 +33,9 @@ class TransactionRequest extends FormRequest
     {
         return [
             "expediteur.required" => "Veuillez remplir les champs !",
+            "expediteur.min" => "Le format du numéro ne correspond pas !",
             "destinataire.required" => "Veuillez remplir les champs !",
+            "destinataire.min" => "Le format du numéro ne correspond pas !",
             "type.required" => "Veuillez remplir les champs !",
             "montant.required" => "Veuillez remplir les champs !",
             "fournisseur.required" => "Veuillez remplir les champs !"
